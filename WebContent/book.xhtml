@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+<ui:composition template="_template.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="bookId" value="#{bookBean.bookId}" />
+		<f:viewAction action="#{bookBean.findBookById}"
+			if="#{param.bookId != null}" />
+	</f:metadata>
+
+	<ui:define name="title"> New Book</ui:define>
+	<ui:define name="content">
+		
+		<h:form>
+
+			<p:messages id="messages" />
+
+			<p:fieldset legend="Book Data">
+				<p:panelGrid columns="2">
+
+					<p:outputLabel value="Title:" for="title" />
+					<p:inputText id="title" value="#{bookBean.book.title}"
+						required="true" requiredMessage="Title is required"
+						validatorMessage="Title can't exceed 40">
+						<f:validateLength maximum="40" />
+						<f:ajax event="blur" render="messages" />
+					</p:inputText>
+					
+					<p:outputLabel value="Genre:" for="genre" />
+					<p:selectOneMenu value="#{bookBean.book.genre}" id="genre">
+						<f:selectItem itemLabel="Select..." itemValue="#{null}"/>
+						<f:selectItems value="#{bookBean.genres}"/>
+					</p:selectOneMenu>					
+
+
+					<p:outputLabel value="ISBN:" for="isbn" />
+					<p:inputMask id="isbn" value="#{bookBean.book.isbn}"
+						validator="#{bookBean.startWithDigitOne}" process="keyup"
+						update="messages" mask="999-9-99-999999-9" />
+
+
+					<p:outputLabel value="Price:" for="price" />
+					<p:inputText id="price" value="#{bookBean.book.price}"
+						label="Price">
+						<f:validateDoubleRange minimum="1.0" maximum="1000.000" />
+					</p:inputText>
+
+					<p:outputLabel value="Book Release:" for="bookRelease" />
+					<p:calendar id="bookRelease" value="#{bookBean.book.releaseDate.time}"
+						pattern="dd/MM/yyyy" timeZone="America/Sao_Paulo"  mask="true" />
+
+						
+
+					<!-- <p:column>
+						<f:facet name="header">Data</f:facet>
+						<h:outputText value="#{bookBean.book.releaseDate.time}">
+							<f:convertDateTime pattern="dd/MM/yyyy HH:mm"
+								timeZone="America/Sao_Paulo" />
+						</h:outputText>
+					</p:column> -->
+
+				</p:panelGrid>
+				
+				
+			</p:fieldset>
+
+
+			<p:fieldset legend="Author Data">
+				<p:panelGrid columns="4">
+
+					<p:outputLabel value="Select Author:" for="author" />
+					<p:selectOneMenu value="#{bookBean.authorId}" id="author">
+						<f:selectItems value="#{bookBean.authors}" var="author"
+							itemLabel="#{author.name}" itemValue="#{author.id}" />
+					</p:selectOneMenu>
+
+					<p:commandButton value="Add Author" action="#{bookBean.addAuthor}"
+						process="@this author" update="authorsTable" />
+
+
+
+					<p:commandLink value="or register new author"
+						action="#{bookBean.formAuthor}" immediate="true" update="@all" />
+
+				</p:panelGrid>
+				
+				
+				<p:dataList value="#{bookBean.bookAuthors}" var="author"
+					id="authorsTable" emptyMessage="No author">
+					<p:column>
+						<h:outputText value="#{author.name}" />
+					</p:column>
+					<p:column>
+						<p:commandLink value="X"
+							action="#{bookBean.removeAuthorFromBook(author)}"
+							update="authorsTable" process="@this" />
+					</p:column>
+				</p:dataList>
+
+			</p:fieldset>
+
+			<p:commandButton value="Submit" action="#{bookBean.save}"
+				process="@form @this" update="@form :tableBooksForm:booksTable" />
+
+		</h:form>
+		
+		
+
+		<h:form id="tableBooksForm">
+			<p:dataTable value="#{bookBean.bookDataModel}" widgetVar="booksTable" var="book" id="booksTable" 
+						paginator="true" rows="5" lazy="true">
+				
+				<f:facet name="header">Books</f:facet>
+				
+				<p:column headerText="Title" sortBy="#{book.title}" filterBy="#{book.title}" filterMatchMode="startsWith">
+					<h:outputText value="#{book.title}" />
+				</p:column>
+				
+				<p:column headerText="Genre" sortBy="#{book.genre}" filterBy="#{book.genre}" filterMatchMode="startWith">
+
+					<f:facet name="filter">
+						<p:selectOneMenu onchange="PF('booksTable').filter()">
+							<f:selectItem itemLabel="Select..." itemValue="#{null}" noSelectionOption="true"/>
+							<f:selectItem value="#{book.genre}"/>
+						</p:selectOneMenu>
+					</f:facet>
+
+					<h:outputText valeu="#{book.genre}"/>
+				</p:column>
+				
+				
+				<p:column headerText="ISBN" sortBy="#{book.isbn}" filterBy="#{book.isbn}" filterMatchMode="contains">
+					<h:outputText value="#{book.isbn}" />
+				</p:column>
+
+				<p:column headerText="Price" sortBy="#{book.price}" filterBy="#{book.price}" filterFunction="#{bookBean.priceIsLower}">
+					<h:outputText value="#{book.price}">
+						<f:convertNumber type="currency" pattern="R$ #0.00" currencySymbol="R$" locale="pt_BR" />
+					</h:outputText>
+				</p:column>
+
+
+				<p:column headerText="Release Date" sortBy="#{book.releaseDate}" filterBy="#{book.releaseDate.time}" 
+								filterMatchMode="contains">
+					<h:outputText value="#{book.releaseDate.time}">
+						<f:convertDateTime pattern="dd/MM/yyyy"
+							timeZone="America/Sao_Paulo" />
+					</h:outputText>
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">Update</f:facet>
+					<h:commandLink value="Update" action="#{bookBean.update(book)}" />
+				</p:column>
+
+				<p:column>
+					<f:facet name="header">Remove</f:facet>
+					<h:commandLink value="Remove" action="#{bookBean.remove(book)}" />
+				</p:column>
+
+			</p:dataTable>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="text">Register Books</ui:define>
+
+</ui:composition>
+
+</html>

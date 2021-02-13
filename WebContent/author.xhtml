@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+<ui:composition template="_template.xhtml">
+
+	<f:metadata>
+		<f:viewParam name="authorId" value="#{authorBean.authorId}" />
+		<f:viewAction action="#{authorBean.findAuthorById}"
+			if="#{param.authorId != null}" />
+	</f:metadata>
+
+
+	<ui:define name="title">
+		<p:outputPanel>New Author</p:outputPanel>
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form id="author">
+			<p:fieldset legend="Data Author">
+				<h:panelGrid columns="3">
+
+					<p:outputLabel value="Name:" for="name" />
+					<p:inputText id="name" value="#{authorBean.author.name}"
+						required="true">
+						<f:validateLength minimum="5" />
+						<f:ajax event="blur" render="messageName" />
+					</p:inputText>
+					<p:message for="name" id="messageName" />
+
+
+					<p:outputLabel value="Email:" for="email" />
+					<p:inputText id="email" value="#{authorBean.author.email}"
+						required="true" validatorMessage="Invalid email">
+						<f:attribute name="type" value="email" />
+						<f:passThroughAttribute name="placeholder" value="Author email" />
+						<f:validateRegex pattern=".+@.+" />
+						<f:ajax event="blur" render="messageEmail" />
+					</p:inputText>
+
+					<p:message for="email" id="messageEmail" />
+
+					<p:commandButton value="Submit" action="#{authorBean.submit}"
+						process="@form" update="@form :tableAuthors" />
+				</h:panelGrid>
+			</p:fieldset>
+		</h:form>
+
+		<h:form id="tableAuthors">
+
+			<p:dataList value="#{bookBean.authors}" var="author" id="authorsTable" type="definition">
+				<f:facet name="header">
+						Authors
+					</f:facet>
+
+				<p:commandButton icon="fa fa-fw fa-edit" update=":author">
+					<f:setPropertyActionListener value="#{author}" target="#{authorBean.author}" />
+				</p:commandButton>
+
+
+				<p:commandButton icon="fa fa-fw fa-remove"
+					action="#{authorBean.remove(author)}" update="@form" />					
+						
+						#{author.name} - #{author.email}
+					
+				</p:dataList>
+
+
+		</h:form>
+	</ui:define>
+	
+	<ui:define name="text">
+  		Register Authors
+	</ui:define>
+	
+</ui:composition>
+
+</html>

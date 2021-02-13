@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+
+<ui:composition template="_template.xhtml">
+
+	<ui:define name="content">
+
+		<h:form id="ringForm">
+			<p:ring id="basic" value="#{bookBean.books}" var="book">
+				<p:outputPanel style="text-align: center;" layout="block">
+						#{book.title}
+						<br />
+						<p:commandButton update=":ringForm:detailBook" icon="ui-icon-search" 
+										title="View" oncomplete="PF('dialogBook').show();">
+										
+							<f:setPropertyActionListener value="#{book}" target="#{bookBean.book}" />
+						</p:commandButton>
+					</p:outputPanel>
+			</p:ring>
+
+			<p:dialog id="dialogBook" header="Book Information"	widgetVar="dialogBook" modal="true" showEffect="fade"
+				hideEffect="fade" resizable="false" width="300">
+
+				<p:outputPanel id="detailBook" style="text-align:center" layout="block">
+					<p:panelGrid columns="2" rendered="#{not empty bookBean.book}" columnClasses="value"  style="width:100%;">
+						<f:facet name="header">#{bookBean.book.title}</f:facet>
+						
+						<h:outputText value="Price"/>
+						<h:outputText value="#{bookBean.book.price}"/>
+							
+						<h:outputText value="ISBN"/>
+						<h:outputText value="#{bookBean.book.isbn}"/>						
+					</p:panelGrid>
+				</p:outputPanel>
+			</p:dialog>
+
+
+
+		</h:form>
+	</ui:define>
+
+</ui:composition>
+
+</html>
